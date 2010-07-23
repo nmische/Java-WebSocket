@@ -179,11 +179,21 @@ final class WebSocket {
 
         // If the ByteBuffer ends with 0x0D 0x0A 0x0D 0x0A
         // (or two CRLFs), then the client handshake is complete
+        // (version 75)
+        
+        // If the ByteBuffer ends with 0x0D 0x0A 0x0D 0x0A
+        // followed by 8 random bytes, then the client
+        // handshake is complete (version 76)
+        
         byte[] h = this.remoteHandshake.array();
         if ((h.length>=4 && h[h.length-4] == CR
-                        && h[h.length-3] == LF
-                        && h[h.length-2] == CR
-                        && h[h.length-1] == LF) ||
+                         && h[h.length-3] == LF
+                         && h[h.length-2] == CR
+                         && h[h.length-1] == LF) ||
+            (h.length>=8 && h[h.length-12] == CR
+                         && h[h.length-11] == LF
+                         && h[h.length-10] == CR
+                         && h[h.length-9] == LF) ||
             (h.length==23 && h[h.length-1] == 0)) {
             completeHandshake();
         }

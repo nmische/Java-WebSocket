@@ -120,10 +120,10 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
             while (selector.select(500) > 0) {
 
                 Set<SelectionKey> keys = selector.selectedKeys();
-                Iterator i = keys.iterator();
+                Iterator<SelectionKey> i = keys.iterator();
 
                 while (i.hasNext()) {
-                    SelectionKey key = (SelectionKey)i.next();
+                    SelectionKey key = i.next();
                     i.remove();
 
                     // When 'conn' has connected to the host
