@@ -116,7 +116,7 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
     
     /**
      * Sets this WebSocketClient subprotocol.
-     * @param uri
+     * @param subprotocol
      */
     public void setSubProtocol(String subprotocol) {
         this.subprotocol = subprotocol;

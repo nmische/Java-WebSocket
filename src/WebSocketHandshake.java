@@ -60,7 +60,7 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
 	}
 
 	public byte[] getHandshake() {
-		if (handshake == null) {
+		if (handshake == null && handshakeDraft != null && handshakeType != null) {
 			buildHandshake();
 		}
 		return handshake;
@@ -92,6 +92,12 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
 		return (byte[]) get(fieldName);
 	}
 	
+	/**
+	 * Parses the parts of the handshake into Hashtable keys. Can only be 
+	 * called if the handshake draft and type are set. Called automatically
+	 * when handshake is set, if the <var>draft</var> and <var>type</var> are known and set for
+	 * the handshake.
+	 */
 	public void parseHandshake() {
 		
 		if (this.handshakeDraft == null) throw new NullPointerException("Handshake draft type must be set before parsing.");
@@ -182,6 +188,12 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
 		}	
 	}
 	
+	/**
+	 * Generates the handshake byte array based on the handshake <var>draft</var> and <var>type</var> as well as the keys 
+	 * set for this handshake. Called automatically
+	 * when handshake is requested, if the <var>draft</var> and <var>type</var> are known and set for
+	 * the handshake.
+	 */
 	public void buildHandshake() {
 		
 		if (this.handshakeDraft == null) throw new NullPointerException("Handshake draft type must be set before building.");

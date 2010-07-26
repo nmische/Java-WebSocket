@@ -15,7 +15,7 @@ import java.nio.channels.SocketChannel;
  * by your code.
  * @author Nathan Rajlich
  */
-final class WebSocket implements WebSocketProtocol {
+public final class WebSocket implements WebSocketProtocol {
     // CONSTANTS ///////////////////////////////////////////////////////////////    
     /**
      * The byte representing CR, or Carriage Return, or \r
