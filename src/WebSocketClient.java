@@ -246,60 +246,60 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
     public boolean onHandshakeRecieved(WebSocket conn, WebSocketHandshake handshake) throws IOException {
         
         if (handshake.getDraft() == Draft.DRAFT75) {
-        	// TODO: Do some parsing of the returned handshake, and close connection
+            // TODO: Do some parsing of the returned handshake, and close connection
             // (return false) if we recieved anything unexpected.
-        	return true;
+            return true;
         } else if (handshake.getDraft() == Draft.DRAFT76) {
-        	
+            
             if (!handshake.getProperty("status-code").equals("101")){
-            	return false;
+                return false;
             }
             
-        	if (!handshake.containsKey("upgrade") || !handshake.getProperty("upgrade").equalsIgnoreCase("websocket")) {
-        		return false;
-        	}
-        	
-        	if (!handshake.containsKey("connection") || !handshake.getProperty("connection").equalsIgnoreCase("upgrade")) {
-        		return false;
-        	}
-        	
-        	if (!handshake.containsKey("sec-websocket-origin") || !handshake.getProperty("sec-websocket-origin").equalsIgnoreCase("null")) {
-        		return false;
-        	}
-        	
-        	int port = (uri.getPort() == -1) ? 80 : uri.getPort();
-        	String location = "ws://";
-        	location += uri.getHost() + (port != 80 ? ":" + port : "");
-        	location += "/" + uri.getPath(); 
-        	
-        	if (!handshake.containsKey("sec-websocket-location") || !handshake.getProperty("sec-websocket-location").equalsIgnoreCase(location)) {
-        		return false;
-        	}
-        	
-        	if (subprotocol != null){
-        		// TODO: support lists of protocols
-        		if (!handshake.containsKey("sec-websocket-protocol") || !handshake.getProperty("sec-websocket-protocol").equals(subprotocol)) {
-            		return false;
-            	}        		
-        	}
-        	
-        	
-        	if (expected == null) {        	
-		    	try {
-		        	MessageDigest md = MessageDigest.getInstance("MD5");
-		        	expected = md.digest(challenge);		        	            	
-		        } catch (NoSuchAlgorithmException e) {
-		        	return false;
-		        }
-        	}
+            if (!handshake.containsKey("upgrade") || !handshake.getProperty("upgrade").equalsIgnoreCase("websocket")) {
+                return false;
+            }
+            
+            if (!handshake.containsKey("connection") || !handshake.getProperty("connection").equalsIgnoreCase("upgrade")) {
+                return false;
+            }
+            
+            if (!handshake.containsKey("sec-websocket-origin") || !handshake.getProperty("sec-websocket-origin").equalsIgnoreCase("null")) {
+                return false;
+            }
+            
+            int port = (uri.getPort() == -1) ? 80 : uri.getPort();
+            String location = "ws://";
+            location += uri.getHost() + (port != 80 ? ":" + port : "");
+            location += "/" + uri.getPath(); 
+            
+            if (!handshake.containsKey("sec-websocket-location") || !handshake.getProperty("sec-websocket-location").equalsIgnoreCase(location)) {
+                return false;
+            }
+            
+            if (subprotocol != null){
+                // TODO: support lists of protocols
+                if (!handshake.containsKey("sec-websocket-protocol") || !handshake.getProperty("sec-websocket-protocol").equals(subprotocol)) {
+                    return false;
+                }
+            }
+
+
+            if (expected == null) {
+                try {
+                    MessageDigest md = MessageDigest.getInstance("MD5");
+                    expected = md.digest(challenge);
+                } catch (NoSuchAlgorithmException e) {
+                    return false;
+                }
+            }
             
             byte[] reply = handshake.getAsByteArray("response");
-                       
+            
             if (!Arrays.equals(expected, reply)) {
-            	return false;
+                return false;
             }
-        	
-        	return true;
+            
+            return true;
         }
         
         // If we get here, then something must be wrong
@@ -311,12 +311,12 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
      * @throws IOException 
      */
     private void sendClientHandshake(WebSocket conn) throws IOException {
-    	
-    	int port = (uri.getPort() == -1) ? 80 : uri.getPort();
-    	String requestURI = "/" + uri.getPath();
+        
+        int port = (uri.getPort() == -1) ? 80 : uri.getPort();
+        String requestURI = "/" + uri.getPath();
         String host = uri.getHost() + (port != 80 ? ":" + port : "");
         String origin = "null";
-        
+
         WebSocketHandshake clientHandshake = new WebSocketHandshake();
         clientHandshake.setType(ClientServerType.CLIENT);
         clientHandshake.setDraft(getDraft());
@@ -324,72 +324,72 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
         clientHandshake.put("host", host);
         clientHandshake.put("origin", origin);
         if (subprotocol != null) {
-        	if (getDraft() == Draft.DRAFT75) { 
-        		clientHandshake.put("websocket-protocol", subprotocol);
-        	} else {
-        		clientHandshake.put("sec-webSocket-protocol", subprotocol);
-        	}        	
+            if (getDraft() == Draft.DRAFT75) { 
+                clientHandshake.put("websocket-protocol", subprotocol);
+            } else {
+                clientHandshake.put("sec-webSocket-protocol", subprotocol);
+            }            
         }
-            	
+        
         if (getDraft() == Draft.DRAFT76) { 
-    		
-    		Random rand = new Random();
-    		
-    		int spaces1 = rand.nextInt(11);
-    		int spaces2 = rand.nextInt(11);
-    		    		
-    		spaces1+=2;
-    		spaces2+=2;
-    		
-    		int max1 = Integer.MAX_VALUE / spaces1;
-    		int max2 = Integer.MAX_VALUE / spaces2;
-    		
-    		int number1 = rand.nextInt(max1+1);
-    		int number2 = rand.nextInt(max2+1);
-    		    		
-    		Integer product1 = number1 * spaces1;
-    		Integer product2 = number2 * spaces2;
-    		
-    		String key1 = product1.toString();
-    		String key2 = product2.toString();
-    		
-    		key1 = addNoise(key1);
-    		key2 = addNoise(key2);
-    		
-    		key1 = addSpaces(key1,spaces1);
-    		key2 = addSpaces(key2,spaces2);
-    		
-    		clientHandshake.put("sec-websocket-key1", key1);
-    		clientHandshake.put("sec-websocket-key2", key2);
-    		    		
-    		byte[] key3 = new byte[8];
-    		rand.nextBytes(key3);
-    		
-    		clientHandshake.put("key3", key3);
-    		    		    		
-    		challenge = new byte[] {
-            		(byte)(number1 >> 24),
-    		        (byte)(number1 >> 16),
-    		        (byte)(number1 >> 8),
-    		        (byte)(number1 >> 0),
-    		        (byte)(number2 >> 24),
-    		        (byte)(number2 >> 16),
-    		        (byte)(number2 >> 8),
-    		        (byte)(number2 >> 0),
-    		        (byte) key3[0],
-    		        (byte) key3[1],
-    		        (byte) key3[2],
-    		        (byte) key3[3],
-    		        (byte) key3[4],
-    		        (byte) key3[5],
-    		        (byte) key3[6],
-    		        (byte) key3[7]        		
+            
+            Random rand = new Random();
+            
+            int spaces1 = rand.nextInt(11);
+            int spaces2 = rand.nextInt(11);
+            
+            spaces1+=2;
+            spaces2+=2;
+            
+            int max1 = Integer.MAX_VALUE / spaces1;
+            int max2 = Integer.MAX_VALUE / spaces2;
+            
+            int number1 = rand.nextInt(max1+1);
+            int number2 = rand.nextInt(max2+1);
+            
+            Integer product1 = number1 * spaces1;
+            Integer product2 = number2 * spaces2;
+            
+            String key1 = product1.toString();
+            String key2 = product2.toString();
+            
+            key1 = addNoise(key1);
+            key2 = addNoise(key2);
+            
+            key1 = addSpaces(key1,spaces1);
+            key2 = addSpaces(key2,spaces2);
+            
+            clientHandshake.put("sec-websocket-key1", key1);
+            clientHandshake.put("sec-websocket-key2", key2);
+            
+            byte[] key3 = new byte[8];
+            rand.nextBytes(key3);
+            
+            clientHandshake.put("key3", key3);
+            
+            challenge = new byte[] {
+                    (byte)(number1 >> 24),
+                    (byte)(number1 >> 16),
+                    (byte)(number1 >> 8),
+                    (byte)(number1 >> 0),
+                    (byte)(number2 >> 24),
+                    (byte)(number2 >> 16),
+                    (byte)(number2 >> 8),
+                    (byte)(number2 >> 0),
+                    (byte) key3[0],
+                    (byte) key3[1],
+                    (byte) key3[2],
+                    (byte) key3[3],
+                    (byte) key3[4],
+                    (byte) key3[5],
+                    (byte) key3[6],
+                    (byte) key3[7]
             };
-    		
-    	}    	
-    	
+            
+        }
+        
         conn.socketChannel().write(ByteBuffer.wrap(clientHandshake.getHandshake()));
-    	
+        
     }
 
     /**
@@ -418,38 +418,38 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
     }
 
     private String addNoise (String key) {
-    	
-    	Random rand = new Random();
-    	
-    	for (int i = 0; i < (rand.nextInt(12) + 1); i++) {    			
-			// get a random non-numeric character
-			int x = 0;
-			while (x < 33 || ( x >= 48 && x <= 57)) {
-				x = (rand.nextInt(93) + 33);
-			}
-			char r = (char) x;
-			// get a random position in key
-			int pos = rand.nextInt(key.length()+1);
-			key = key.substring(0,pos) + r + key.substring(pos);    			
-		}
-    	
-    	return key;
-    	
+        
+        Random rand = new Random();
+        
+        for (int i = 0; i < (rand.nextInt(12) + 1); i++) {                
+            // get a random non-numeric character
+            int x = 0;
+            while (x < 33 || ( x >= 48 && x <= 57)) {
+                x = (rand.nextInt(93) + 33);
+            }
+            char r = (char) x;
+            // get a random position in key
+            int pos = rand.nextInt(key.length()+1);
+            key = key.substring(0,pos) + r + key.substring(pos);                
+        }
+        
+        return key;
+        
     }
     
     private String addSpaces (String key, int spaces) {
-    	
-    	Random rand = new Random();
-    	
-    	for (int i = 0; i < spaces; i++) {			
-			char space = (char) 32;
-			// get a random position in key that is not 
-			int pos = rand.nextInt(key.length()-1) + 1;
-			key = key.substring(0,pos) + space + key.substring(pos);    			
-		}
-    	
-    	return key;
-    	
+        
+        Random rand = new Random();
+        
+        for (int i = 0; i < spaces; i++) {            
+            char space = (char) 32;
+            // get a random position in key that is not 
+            int pos = rand.nextInt(key.length()-1) + 1;
+            key = key.substring(0,pos) + space + key.substring(pos);                
+        }
+        
+        return key;
+        
     }
     
     // ABTRACT METHODS /////////////////////////////////////////////////////////

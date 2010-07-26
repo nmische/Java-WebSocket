@@ -183,46 +183,46 @@ public final class WebSocket implements WebSocketProtocol {
         
         // Check to see if this is a flash policy request
         if (h.length==23 && h[h.length-1] == 0) {
-        	handshake = new WebSocketHandshake(h);
-        	completeHandshake(handshake);
-        	return;
+            handshake = new WebSocketHandshake(h);
+            completeHandshake(handshake);
+            return;
         }
 
         Draft draft;
         
         String hsString = new String(this.remoteHandshakeBuffer.array(), UTF8_CHARSET);
         if (hsString.toLowerCase().contains("\r\nsec-")){
-        	draft = Draft.DRAFT76;
+            draft = Draft.DRAFT76;
         } else {
-        	draft = Draft.DRAFT75;
+            draft = Draft.DRAFT75;
         }
                 
         if (draft == Draft.DRAFT75
-        		&&h.length>=4 
-        		&& h[h.length-4] == CR
+                &&h.length>=4 
+                && h[h.length-4] == CR
                 && h[h.length-3] == LF
                 && h[h.length-2] == CR
                 && h[h.length-1] == LF) {
-        	
-        	ClientServerType type = (wstype == ClientServerType.CLIENT) ? ClientServerType.SERVER : ClientServerType.CLIENT;
-        	handshake = new WebSocketHandshake(h, type, draft);
-        	completeHandshake(handshake);
-        	return;
-        	
+            
+            ClientServerType type = (wstype == ClientServerType.CLIENT) ? ClientServerType.SERVER : ClientServerType.CLIENT;
+            handshake = new WebSocketHandshake(h, type, draft);
+            completeHandshake(handshake);
+            return;
+            
         }
         
         if (draft == Draft.DRAFT76
-            	&& wstype == ClientServerType.SERVER
-            	&& h.length>=12 
-            	&& h[h.length-12] == CR                         
-            	&& h[h.length-11] == LF
+                && wstype == ClientServerType.SERVER
+                && h.length>=12 
+                && h[h.length-12] == CR                         
+                && h[h.length-11] == LF
                 && h[h.length-10] == CR
                 && h[h.length-9] == LF) {
-        	
-        	handshake = new WebSocketHandshake(h, ClientServerType.CLIENT, draft);
-        	completeHandshake(handshake);
-        	return;
-        	
+            
+            handshake = new WebSocketHandshake(h, ClientServerType.CLIENT, draft);
+            completeHandshake(handshake);
+            return;
+            
         }
         
         if (draft == Draft.DRAFT76
@@ -232,10 +232,10 @@ public final class WebSocket implements WebSocketProtocol {
                 && h[h.length-19] == LF
                 && h[h.length-18] == CR
                 && h[h.length-17] == LF) {
-        	
-        	handshake = new WebSocketHandshake(h, ClientServerType.SERVER, draft);
-        	completeHandshake(handshake);
-        	return;            
+            
+            handshake = new WebSocketHandshake(h, ClientServerType.SERVER, draft);
+            completeHandshake(handshake);
+            return;            
         }
     }
 
