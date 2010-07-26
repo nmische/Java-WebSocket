@@ -74,6 +74,7 @@ final class WebSocket implements WebSocketProtocol {
      *                      with a Selector before construction of this object.
      * @param listener The {@link WebSocketListener} to notify of events when
      *                 they occur.
+     * @param wstype The type of WebSocket, client or server.
      */
     public WebSocket(SocketChannel socketChannel, WebSocketListener listener, ClientServerType wstype) {
         this.socketChannel = socketChannel;

@@ -4,6 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Hashtable;
 
+/**
+ * The <tt>WebSocketHandshake</tt> is a class used to create and read client and server handshakes.
+ * @author Nathan Mishe
+ */
 public class WebSocketHandshake extends Hashtable<String, Object> implements WebSocketProtocol {
 
 	// INSTANCE PROPERTIES /////////////////////////////////////////////////////
@@ -155,7 +159,7 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
 			}
 			if (this.handshakeType == ClientServerType.SERVER){
 				//get last 16 bytes
-				byte[] key3 = {
+				byte[] response = {
 					getHandshake()[l-16],
 					getHandshake()[l-15],
 					getHandshake()[l-14],
@@ -173,7 +177,7 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
 					getHandshake()[l-2],
 					getHandshake()[l-1]
 				};
-				put("key3", key3);
+				put("response", response);
 			}
 		}	
 	}

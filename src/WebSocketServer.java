@@ -16,6 +16,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * <tt>WebSocketServer</tt> is an abstract class that only takes care of the
  * HTTP handshake portion of WebSockets. It's up to a subclass to add
  * functionality/purpose to the server.
+ * 
+ * May be configured to listen to listen on a specified
+ * <var>port</var> using a specified <var>subprotocol</var>.
+ * May also be configured to only allows connections from a specified <var>origin</var>.
+ * Can be configure to support a specific <var>draft</var> of the WebSocket protocol
+ * (DRAFT75 or DRAFT76) or both (AUTO).
  * @author Nathan Rajlich
  */
 public abstract class WebSocketServer implements Runnable, WebSocketListener {
@@ -29,8 +35,7 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
      * If a constructor is used that doesn't define the draft, the DEFAULT_DRAFT
      *  will be the draft of the WebSocket protocl the WebSocketServer supports.
      */
-    public static final Draft DEFAULT_DRAFT = Draft.AUTO;
-    
+    public static final Draft DEFAULT_DRAFT = Draft.AUTO;    
     /**
      * The value of <var>handshake</var> when a Flash client requests a policy
      * file on this server.
@@ -48,7 +53,7 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
      */
     private Draft draft;
     /**
-     * The origin we will accept connections from.
+     * The origin this WebSocket server will accept connections from.
      */
     private String origin;
     /**
@@ -86,7 +91,7 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
     
     /**
      * Creates a WebSocketServer that will attempt to listen on port
-     * <var>port</var> using a specified <var>subprotocol</var>.
+     * <var>port</var>. Only allows connections from <var>origin</var>.
      * @param port The port number this server should listen on.
      * @param origin The origin this server supports.
      */
@@ -384,6 +389,20 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
         if (prop == null || !prop.equals("Upgrade")) {
             return false;
         }
+        
+        if (subprotocol != null) {
+        	prop = handshake.getProperty("Websocket-Protocol");
+            if (prop == null || !prop.equals(subprotocol)) {
+                return false;
+            }        	
+        }
+        
+        if (origin != null) {
+        	prop = handshake.getProperty("Origin");
+            if (prop == null || !prop.startsWith(origin)) {
+                return false;
+            }
+        }        
 
         // If we've determined that this is a valid WebSocket request, send a
         // valid WebSocket server handshake, then return true to keep connection alive.
@@ -405,195 +424,67 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
     }
     
     private boolean handleHandshake76(WebSocket conn, WebSocketHandshake handshake) throws IOException {
-    	
-    	   
-        
-        // 6.1.  Reading the client's opening handshake
-
-        // 6.1.1. The three-character UTF-8 string "GET".
-        // 6.1.2. A UTF-8-encoded U+0020 SPACE character (0x20 byte).
-    	// 6.1.3.  A string consisting of all the bytes up to the next UTF-8-encoded
-    	// U+0020 SPACE character (0x20 byte).  The result of decoding this
-    	// string as a UTF-8 string is the name of the resource requested by
-    	// the server.  If the server only supports one resource, then this
-    	// can safely be ignored; the client verifies that the right
-    	// resource is supported based on the information included in the
-    	// server's own handshake.  The resource name will begin with U+002F
-    	// SOLIDUS character (/) and will only include characters in the
-    	// range U+0021 to U+007E.
-    	
-    	
+    	    	
         if (!handshake.getProperty("method").equals("GET")
         		|| !handshake.getProperty("request-uri").matches("^/[\u0021-\u007E]*")) {
         	return false;
         } 
-        // 6.1.4. A string of bytes terminated by a UTF-8-encoded U+000D CARRIAGE
-        // RETURN U+000A LINE FEED character pair (CRLF).  All the
-        // characters from the second 0x20 byte up to the first 0x0D 0x0A
-        // byte pair in the data from the client can be safely ignored.  (It
-        // will probably be the string "HTTP/1.1".)
         
-        // 6.1.5. A series of fields.
-        // The expected field names, and the meaning of their corresponding
-        // values, are as follows.  Field names must be compared in an ASCII
-        // case-insensitive manner.
-
         String prop;
-        /*
-	    |Upgrade|
-	       Invariant part of the handshake.  Will always have a value that is
-	       an ASCII case-insensitive match for the string "WebSocket".
-	
-	       Can be safely ignored, though the server should abort the
-	       WebSocket connection if this field is absent or has a different
-	       value, to avoid vulnerability to cross-protocol attacks.
-	    */
+       
         prop = handshake.getProperty("upgrade");
         if (prop == null || !(prop.equalsIgnoreCase("WebSocket"))) {
         	return false;
-        }
-	
-        /*
-	    |Connection|
-	       Invariant part of the handshake.  Will always have a value that is
-	       an ASCII case-insensitive match for the string "Upgrade".
-	
-	       Can be safely ignored, though the server should abort the
-	       WebSocket connection if this field is absent or has a different
-	       value, to avoid vulnerability to cross-protocol attacks.
-        */
+        }	
+        
         prop = handshake.getProperty("connection");
         if (prop == null || !(prop.equalsIgnoreCase("Upgrade"))) {
         	return false;
         }
 
-        /*
-        |Host|
-          The value gives the hostname that the client intended to use when
-          opening the WebSocket.  It would be of interest in particular to
-          virtual hosting environments, where one server might serve
-          multiple hosts, and might therefore want to return different data.
-
-          Can be safely ignored, though the server should abort the
-          WebSocket connection if this field is absent or has a value that
-          does not match the server's host name, to avoid vulnerability to
-          cross-protocol attacks and DNS rebinding attacks.
-        */
         if (!handshake.containsKey("host")) {
         	return false;
         }
     
-       /*
-       |Origin|
-          The value gives the scheme, hostname, and port (if it's not the
-          default port for the given scheme) of the page that asked the
-          client to open the WebSocket.  It would be interesting if the
-          server's operator had deals with operators of other sites, since
-          the server could then decide how to respond (or indeed, _whether_
-          to respond) based on which site was requesting a connection.
-          [ORIGIN]
-    
-          Can be safely ignored, though the server should abort the
-          WebSocket connection if this field is absent or has a value that
-          does not match one of the origins the server is expecting to
-          communicate with, to avoid vulnerability to cross-protocol attacks
-          and cross-site scripting attacks.
-       */
+      
         if (!handshake.containsKey("origin")) {
         	return false;
-        } else if (origin != null && !handshake.getProperty("origin").startsWith(origin)) {
-        	return false;
-    	}
+        } 
         
-       /*
-       |Sec-WebSocket-Protocol|
-          The value gives the names of subprotocols that the client is
-          willing to use, as a space-separated list in the order that the
-          client prefers the protocols.  It would be interesting if the
-          server supports multiple protocols or protocol versions.
-    
-          Can be safely ignored, though the server may abort the WebSocket
-          connection if the field is absent but the conventions for
-          communicating with the server are such that the field is expected;
-          and the server should abort the WebSocket connection if the field
-          does not contain a value that does matches one of the subprotocols
-          that the server supports, to avoid integrity errors once the
-          connection is established.
-       */
-        if (handshake.containsKey("sec-websocket-protocol")) {
-        	if (subprotocol != null && !handshake.getProperty("sec-websocket-protocol").equals(subprotocol)) {
-        		return false;
-        	}
+        if (origin != null) {
+        	prop = handshake.getProperty("origin");
+            if (prop == null || !prop.startsWith(origin)) {
+                return false;
+            }
+        }   
+              
+        if (subprotocol != null) {
+        	prop = handshake.getProperty("sec-websocket-protocol");
+            if (prop == null || !prop.equals(subprotocol)) {
+                return false;
+            }        	
         }
-        
-       /*    
-       |Sec-WebSocket-Key1|
-    
-       |Sec-WebSocket-Key2|
-          The values provide the information required for computing the
-          server's handshake, as described in the next section.
-       */
+              
         if (!handshake.containsKey("sec-websocket-key1") || !handshake.containsKey("sec-websocket-key2")) {
         	return false;
         }
-       
-        // 6.1.6 After the first 0x0D 0x0A 0x0D 0x0A byte sequence, indicating the
-        // end of the fields, the client sends eight random bytes.  These
-        // are used in constructing the server handshake.
+               
         byte[] key3 = handshake.getAsByteArray("key3");
        
-        
-
-        // 6.2. Sending the server's opening handshake
-        
-        // 6.2.3. Let /location/ be the string that results from constructing a
-        // WebSocket URL from /host/, /port/, /resource name/, and /secure
-        // flag/
-        // String location = "ws://" + handshake.getProperty("host") + handshake.getProperty("request-uri");
-                
-        
-        // 6.2.4. Let /key-number_1/ be the digits (characters in the range U+0030
-        // DIGIT ZERO (0) to U+0039 DIGIT NINE (9)) in /key_1/, interpreted
-        // as a base ten integer, ignoring all other characters in /key_1/.
-
-        // Let /key-number_2/ be the digits (characters in the range U+0030
-        // DIGIT ZERO (0) to U+0039 DIGIT NINE (9)) in /key_2/, interpreted
-        // as a base ten integer, ignoring all other characters in /key_2/.
-
-        // If either /key-number_1/ or /key-number_2/ is greater than
-        // 4,294,967,295, then abort the WebSocket connection.  This is a
-        // symptom of an attack.
-
         long key1 = Long.parseLong(handshake.getProperty("sec-websocket-key1").replaceAll("[^0-9]",""));
         long key2 = Long.parseLong(handshake.getProperty("sec-websocket-key2").replaceAll("[^0-9]",""));
         
         if (key1 > MAX_KEY_VALUE || key2 > MAX_KEY_VALUE) {
         	return false;
         }
-        
-        // 6.2.5. Let /spaces_1/ be the number of U+0020 SPACE characters in
-        // /key_1/.
-
-        // Let /spaces_2/ be the number of U+0020 SPACE characters in
-        // /key_2/.
-
-        // If either /spaces_1/ or /spaces_2/ is zero, then abort the
-        // WebSocket connection.  This is a symptom of a cross-protocol
-        // attack.
-        
+                
         int spaces1 = handshake.getProperty("sec-websocket-key1").replaceAll("[^ ]", "").length();
         int spaces2 = handshake.getProperty("sec-websocket-key2").replaceAll("[^ ]", "").length();
         
         if (spaces1 == 0 || spaces2 == 0) {
         	return false;
         }
-        
-        // 6.2.6. If /key-number_1/ is not an integral multiple of /spaces_1/,
-        // then abort the WebSocket connection.
-
-        // If /key-number_2/ is not an integral multiple of /spaces_2/,
-        // then abort the WebSocket connection.
-        
+                
         long mod1 = key1 % spaces1;
         long mod2 = key2 % spaces2;
         
@@ -601,20 +492,8 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
         	return false;
         }
 
-        // 2.6.7. Let /part_1/ be /key-number_1/ divided by /spaces_1/.
-
-        // Let /part_2/ be /key-number_2/ divided by /spaces_2/.
-
         long part1 = key1/spaces1;
         long part2 = key2/spaces2;
-
-        // 2.6.8. Let /challenge/ be the concatenation of /part_1/, expressed as a
-        // big-endian unsigned 32-bit integer, /part_2/, expressed as a
-        // big-endian unsigned 32-bit integer, and the eight bytes of
-        // /key_3/ in the order they were sent on the wire.
-        
-       
-        System.out.println("Key3:" + getHexString(key3));
         
         byte[] challenge = {
         		(byte)(part1 >> 24),
@@ -635,9 +514,6 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
 		        (byte) key3[7]        		
         };
         
-        // 2.6.9. Let /response/ be the MD5 fingerprint of /challenge/ as a big-
-        // endian 128 bit string.  [RFC1321]
-        
         byte[] response;
         
         try {
@@ -646,12 +522,7 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
         } catch (NoSuchAlgorithmException e) {
         	return false;
         }
-        
-        System.out.println("Response:"+getHexString(response));
-        System.out.println("Response Length:"+response.length);
-        
-        //2.6.10. - 2.6.13. Send the following ... to the client:
-        
+                    
         WebSocketHandshake serverHandshake = new WebSocketHandshake();
         serverHandshake.setType(ClientServerType.SERVER);
         serverHandshake.setDraft(Draft.DRAFT76);
@@ -687,14 +558,5 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
     public abstract void onClientOpen(WebSocket conn);
     public abstract void onClientClose(WebSocket conn);
     public abstract void onClientMessage(WebSocket conn, String message);
-    
-    public static String getHexString(byte[] b) {
-	  String result = "";
-	  for (int i=0; i < b.length; i++) {
-	    result += " 0x" +
-	          Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 ).toUpperCase();
-	  }
-	  return result;
-	}
-        
+       
 }

@@ -88,6 +88,7 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
      * attempt to connect automatically. You must call <var>connect</var> first 
      * to initiate the socket connection.
      * @param serverUri
+     * @param subprotocol
      * @param draft DRAFT75 or DRAFT76
      */
     public WebSocketClient(URI serverUri, String subprotocol, String draft) {
@@ -250,9 +251,6 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
         	return true;
         } else if (handshake.getDraft() == Draft.DRAFT76) {
         	
-        	System.out.println("Handshake:" + getHexString(handshake.getHandshake()));
-        	
-        	
             if (!handshake.getProperty("status-code").equals("101")){
             	return false;
             }
@@ -295,7 +293,7 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
 		        }
         	}
             
-            byte[] reply = handshake.getAsByteArray("key3");
+            byte[] reply = handshake.getAsByteArray("response");
                        
             if (!Arrays.equals(expected, reply)) {
             	return false;
@@ -368,8 +366,7 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
     		rand.nextBytes(key3);
     		
     		clientHandshake.put("key3", key3);
-    		System.out.println("Key3:" + getHexString(key3));
-    		    		
+    		    		    		
     		challenge = new byte[] {
             		(byte)(number1 >> 24),
     		        (byte)(number1 >> 16),
@@ -460,12 +457,4 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
     public abstract void onOpen();
     public abstract void onClose();
     
-    public static String getHexString(byte[] b) {
-  	  String result = "";
-  	  for (int i=0; i < b.length; i++) {
-  	    result += " 0x" +
-  	          Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 ).toUpperCase();
-  	  }
-  	  return result;
-  	}
 }

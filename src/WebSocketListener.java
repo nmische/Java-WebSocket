@@ -13,7 +13,7 @@ interface WebSocketListener extends WebSocketProtocol {
      * <var>handshake</var>, and return a boolean indicating whether or not the
      * connection is a valid WebSocket connection.
      * @param conn The <tt>WebSocket</tt> instance this event is occuring on.
-     * @param handshake The entire UTF-8 decoded handshake from the connection.
+     * @param handshake The <tt>WebSocketHandshake</tt>.
      * @return <var>true</var> if the handshake is valid, and <var>onOpen</var>
      *         should be immediately called afterwards. <var>false</var> if the
      *         handshake was invalid, and the connection should be terminated.
