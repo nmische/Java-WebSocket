@@ -6,8 +6,8 @@ import java.io.IOException;
  */
 public class ChatServer extends WebSocketServer {
 
-    public ChatServer(int port) {
-        super(port);
+    public ChatServer(int port, String origin, String subprotocol, Draft draft) {
+        super(port,origin,subprotocol,draft);
     }
 
     public void onClientOpen(WebSocket conn) {
@@ -37,13 +37,24 @@ public class ChatServer extends WebSocketServer {
         System.out.println(conn + ": " + message);
     }
 
-    public static void main(String[] args) {
-        int port = 80;
-        try {
-            port = Integer.parseInt(args[0]);
-        } catch(Exception ex) {}
-        ChatServer s = new ChatServer(port);
+    public static void main(String[] args) {        
+        
+        int port = (args.length >= 1) ? Integer.parseInt(args[0]) : 80;
+        String origin = (args.length >=2) ? args[1] : null;
+        String subprotocol = (args.length >=3) ? args[2] : null;
+        Draft draft = (args.length >= 4) ? Draft.valueOf(args[3]) : Draft.AUTO;
+        
+        ChatServer s = new ChatServer(port,origin,subprotocol,draft);
         s.start();
         System.out.println("ChatServer started on port: " + s.getPort());
+        if (origin != null) {
+        	System.out.println("ChatServer origin: " + s.getOrigin());
+        }
+        if (subprotocol != null) {
+        	System.out.println("ChatServer subprotocol: " + s.getSubProtocol());
+        }
+        if (draft != Draft.AUTO) {
+        	System.out.println("ChatServer draft: " + s.getDraft().toString());
+        }
     }
 }

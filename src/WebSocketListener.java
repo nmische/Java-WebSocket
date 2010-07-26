@@ -6,7 +6,7 @@ import java.io.IOException;
  * The methods within are called by <tt>WebSocket</tt>.
  * @author Nathan Rajlich
  */
-interface WebSocketListener {
+interface WebSocketListener extends WebSocketProtocol {
     /**
      * Called when the socket connection is first established, and the WebSocket
      * handshake has been recieved. This method should parse the
@@ -18,7 +18,7 @@ interface WebSocketListener {
      *         should be immediately called afterwards. <var>false</var> if the
      *         handshake was invalid, and the connection should be terminated.
      */
-    public boolean onHandshakeRecieved(WebSocket conn, String handshake) throws IOException;
+    public boolean onHandshakeRecieved(WebSocket conn, WebSocketHandshake handshake) throws IOException;
     /**
      * Called when an entire text frame has been recieved. Do whatever you want
      * here...
