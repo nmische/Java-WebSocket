@@ -373,9 +373,9 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
 
     private boolean handleHandshake75(WebSocket conn, WebSocketHandshake handshake) throws IOException {
         
-        if (!handshake.getProperty("method").equals("GET")
-                || !handshake.getProperty("http-version").equals("HTTP/1.1")
-                    || !handshake.getProperty("request-uri").startsWith("/")) {
+        if (!handshake.getProperty("Method").equals("GET")
+                || !handshake.getProperty("HTTP-Version").equals("HTTP/1.1")
+                    || !handshake.getProperty("Request-URI").startsWith("/")) {
             return false;
         }
         
@@ -409,11 +409,11 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
         WebSocketHandshake serverHandshake = new WebSocketHandshake();
         serverHandshake.setType(ClientServerType.SERVER);
         serverHandshake.setDraft(Draft.DRAFT75);
-        serverHandshake.put("host", handshake.getProperty("Host"));
-        serverHandshake.put("request-uri", handshake.getProperty("request-uri"));
-        serverHandshake.put("origin", handshake.getProperty("Origin"));
+        serverHandshake.put("Host", handshake.getProperty("Host"));
+        serverHandshake.put("Request-Uri", handshake.getProperty("request-uri"));
+        serverHandshake.put("Origin", handshake.getProperty("Origin"));
         if (handshake.containsKey("Websocket-Protocol")) {
-            serverHandshake.put("websocket-protocol", handshake.getProperty("Websocket-Protocol"));
+            serverHandshake.put("Websocket-Protocol", handshake.getProperty("Websocket-Protocol"));
         }
         
         conn.socketChannel().write(ByteBuffer.wrap(serverHandshake.getHandshake()));

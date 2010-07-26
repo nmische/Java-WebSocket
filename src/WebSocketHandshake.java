@@ -112,12 +112,22 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
         if (this.handshakeType == ClientServerType.SERVER) {
             int sp1 = line.indexOf(" ");
             int sp2 = line.indexOf(" ",sp1+1);
-            String httpVersion = line.substring(0,sp1);            
+            String httpVersion = line.substring(0,sp1);
             String statusCode = line.substring(sp1+1,sp2);
             String reasonPhrase = line.substring(sp2+1,line.length());
-            put("http-version", httpVersion);
-            put("status-code", statusCode);
-            put("reason-phrase", reasonPhrase);
+            String httpVersionKey = "HTTP-Version";
+            String statusCodeKey = "Status-Code";
+            String reasonPhraseKey = "Reason-Phrase";
+            
+            if (this.handshakeDraft == Draft.DRAFT76) {
+                httpVersionKey = httpVersionKey.toLowerCase();
+                statusCodeKey = statusCodeKey.toLowerCase();
+                reasonPhraseKey = reasonPhraseKey.toLowerCase();
+            }
+            
+            put(httpVersionKey, httpVersion);
+            put(statusCodeKey, statusCode);
+            put(reasonPhraseKey, reasonPhrase);
         }
         
         if (this.handshakeType == ClientServerType.CLIENT) {
@@ -126,9 +136,20 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
             String method = line.substring(0,sp1);            
             String requestURI = line.substring(sp1+1,sp2);
             String httpVersion = line.substring(sp2+1,line.length());
-            put("method", method);
-            put("request-uri", requestURI);
-            put("http-version", httpVersion);
+            String methodKey = "Method";
+            String requestURIKey = "Request-URI";
+            String httpVersionKey = "HTTP-Version";
+            
+            
+            if (this.handshakeDraft == Draft.DRAFT76) {
+                methodKey = methodKey.toLowerCase();
+                requestURIKey = httpVersionKey.toLowerCase();
+                httpVersionKey = httpVersionKey.toLowerCase();
+            }
+            
+            put(methodKey, method);
+            put(requestURIKey, requestURI);
+            put(httpVersionKey, httpVersion);
         }
         
         // parse fields
@@ -206,10 +227,10 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
                                        "Connection: Upgrade\r\n";
             
             if (this.handshakeDraft == Draft.DRAFT75) {
-                responseHandshake += "WebSocket-Origin: " + getProperty("origin") + "\r\n" +
-                                     "WebSocket-Location: ws://" + getProperty("host") + getProperty("request-uri") + "\r\n";
+                responseHandshake += "WebSocket-Origin: " + getProperty("Origin") + "\r\n" +
+                                     "WebSocket-Location: ws://" + getProperty("Host") + getProperty("Request-URI") + "\r\n";
                 if (containsKey("WebSocket-Protocol")) {
-                    responseHandshake += "WebSocket-Protocol: " + getProperty("websocket-protocol") + "\r\n";
+                    responseHandshake += "WebSocket-Protocol: " + getProperty("Websocket-Protocol") + "\r\n";
                 }
             }
             
@@ -243,14 +264,18 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
         
         if (this.handshakeType == ClientServerType.CLIENT) {
             
-            String requestHandshake = "GET " + getProperty("request-uri") + " HTTP/1.1\r\n" +
+            String requestURI = (getDraft() == Draft.DRAFT75) ? getProperty("Request-URI") : getProperty("request-uri");
+            String host = (getDraft() == Draft.DRAFT75) ? getProperty("Host") : getProperty("host");
+            String origin = (getDraft() == Draft.DRAFT75) ? getProperty("Origin") : getProperty("origin");
+            
+            String requestHandshake = "GET " + requestURI + " HTTP/1.1\r\n" +
                 "Upgrade: WebSocket\r\n" +
                 "Connection: Upgrade\r\n" +
-                "Host: " + getProperty("host") + "\r\n" +
-                "Origin: " + getProperty("origin") + "\r\n";
+                "Host: " + host + "\r\n" +
+                "Origin: " + origin + "\r\n";
             
-            if (getDraft() == Draft.DRAFT75 && containsKey("websocket-protocol")) {  
-                requestHandshake += "WebSocket-Protocol: " + getProperty("websocket-protocol") + "\r\n";
+            if (getDraft() == Draft.DRAFT75 && containsKey("Websocket-Protocol")) {  
+                requestHandshake += "WebSocket-Protocol: " + getProperty("Websocket-Protocol") + "\r\n";
             }
             
             if (getDraft() == Draft.DRAFT76 ) {

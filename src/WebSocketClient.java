@@ -320,14 +320,23 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
         WebSocketHandshake clientHandshake = new WebSocketHandshake();
         clientHandshake.setType(ClientServerType.CLIENT);
         clientHandshake.setDraft(getDraft());
-        clientHandshake.put("request-uri", requestURI);
-        clientHandshake.put("host", host);
-        clientHandshake.put("origin", origin);
+        
+        if (getDraft() == Draft.DRAFT75) {
+            clientHandshake.put("Request-Uri", requestURI);
+            clientHandshake.put("Host", host);
+            clientHandshake.put("Origin", origin);        	
+        } else {
+            clientHandshake.put("request-uri", requestURI);
+            clientHandshake.put("host", host);
+            clientHandshake.put("origin", origin);
+        }
+        
+       
         if (subprotocol != null) {
             if (getDraft() == Draft.DRAFT75) { 
-                clientHandshake.put("websocket-protocol", subprotocol);
+                clientHandshake.put("Websocket-Protocol", subprotocol);
             } else {
-                clientHandshake.put("sec-webSocket-protocol", subprotocol);
+                clientHandshake.put("sec-websocket-protocol", subprotocol);
             }            
         }
         
