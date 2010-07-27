@@ -103,7 +103,7 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
         if (this.handshakeDraft == null) throw new NullPointerException("Handshake draft type must be set before parsing.");
         if (this.handshakeType == null) throw new NullPointerException("Handshake type type must be set before parsing.");
         
-        // parse the HTTP request-line or HTTP status-line    
+        // parse the HTTP request-line or HTTP status-line 
         
         String hs = this.toString();
         String[] requestLines = hs.split("\r\n"); 
@@ -140,10 +140,9 @@ public class WebSocketHandshake extends Hashtable<String, Object> implements Web
             String requestURIKey = "Request-URI";
             String httpVersionKey = "HTTP-Version";
             
-            
             if (this.handshakeDraft == Draft.DRAFT76) {
                 methodKey = methodKey.toLowerCase();
-                requestURIKey = httpVersionKey.toLowerCase();
+                requestURIKey = requestURIKey.toLowerCase();
                 httpVersionKey = httpVersionKey.toLowerCase();
             }
             

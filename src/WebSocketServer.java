@@ -410,7 +410,7 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
         serverHandshake.setType(ClientServerType.SERVER);
         serverHandshake.setDraft(Draft.DRAFT75);
         serverHandshake.put("Host", handshake.getProperty("Host"));
-        serverHandshake.put("Request-Uri", handshake.getProperty("request-uri"));
+        serverHandshake.put("Request-URI", handshake.getProperty("Request-URI"));
         serverHandshake.put("Origin", handshake.getProperty("Origin"));
         if (handshake.containsKey("Websocket-Protocol")) {
             serverHandshake.put("Websocket-Protocol", handshake.getProperty("Websocket-Protocol"));
@@ -455,13 +455,13 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
             if (prop == null || !prop.startsWith(origin)) {
                 return false;
             }
-        }   
+        }
         
         if (subprotocol != null) {
             prop = handshake.getProperty("sec-websocket-protocol");
             if (prop == null || !prop.equals(subprotocol)) {
                 return false;
-            }            
+            }
         }
         
         if (!handshake.containsKey("sec-websocket-key1") || !handshake.containsKey("sec-websocket-key2")) {
