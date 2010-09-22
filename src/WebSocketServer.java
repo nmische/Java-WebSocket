@@ -397,7 +397,7 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
       while (true) {
 
         try {
-          selector.select(100L);
+          selector.select();
           Set<SelectionKey> keys = selector.selectedKeys();
           Iterator<SelectionKey> i = keys.iterator();
 
@@ -415,6 +415,7 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
               WebSocket c = new WebSocket(client, newBufferQueue(), this,
                   ClientServerType.SERVER);
               client.register(selector, SelectionKey.OP_READ, c);
+              continue;
             }
 
             // if isReadable == true
@@ -422,6 +423,7 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
             if (key.isReadable()) {
               WebSocket conn = (WebSocket) key.attachment();
               conn.handleRead();
+              continue;
             }
 
             // if isWritable == true
@@ -432,6 +434,7 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
                 conn.socketChannel().register(selector, SelectionKey.OP_READ,
                     conn);
               }
+              continue;
             }
           }
 
@@ -447,15 +450,15 @@ public abstract class WebSocketServer implements Runnable, WebSocketListener {
           }
 
         } catch (IOException e) {
-          //e.printStackTrace();
+          e.printStackTrace();
         } catch (RuntimeException e) {
-          //e.printStackTrace();
+          e.printStackTrace();
         }
       }
     } catch (IOException e) {
-      //e.printStackTrace();
+      e.printStackTrace();
     } catch (NoSuchAlgorithmException e) {
-      //e.printStackTrace();
+      e.printStackTrace();
     }
   }
 
