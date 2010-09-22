@@ -1,3 +1,4 @@
+package net.tootallnate.websocket;
 // TODO: Refactor into proper class hierarchy.
 
 import java.io.IOException;

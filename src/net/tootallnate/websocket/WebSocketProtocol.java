@@ -1,3 +1,4 @@
+package net.tootallnate.websocket;
 import java.nio.charset.Charset;
 
 /**

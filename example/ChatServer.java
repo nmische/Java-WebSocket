@@ -1,10 +1,13 @@
-
 import java.io.IOException;
+
+import net.tootallnate.websocket.WebSocket;
+import net.tootallnate.websocket.WebSocketServer;
 
 /**
  * A simple WebSocketServer implementation. Keeps track of a "chatroom".
  */
 public class ChatServer extends WebSocketServer {
+
 
     public ChatServer(int port, String origin, String subprotocol, Draft draft) {
         super(port,origin,subprotocol,draft);
@@ -17,6 +20,7 @@ public class ChatServer extends WebSocketServer {
             ex.printStackTrace();
         }
         System.out.println(conn + " entered the room!");
+        
     }
 
     public void onClientClose(WebSocket conn) {

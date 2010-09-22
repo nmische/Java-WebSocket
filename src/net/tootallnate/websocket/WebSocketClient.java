@@ -1,3 +1,4 @@
+package net.tootallnate.websocket;
 // TODO: Refactor into proper class hierarchy.
 
 import java.io.IOException;
@@ -71,15 +72,28 @@ public abstract class WebSocketClient implements Runnable, WebSocketListener {
   public WebSocketClient(URI serverUri) {
     setURI(serverUri);
   }
+  
+  /**
+   * Constructs a WebSocketClient instance and sets it to the connect to the
+   * specified URI. The client does not attempt to connect automatically. You
+   * must call <var>connect</var> first to initiate the socket connection.
+   * 
+   * @param serverUri
+   */
+  public WebSocketClient(URI serverUri, Draft draft) {
+    setURI(serverUri);
+    setDraft(draft);
+  }
 
   /**
    * Constructs a WebSocketClient instance and sets it to the connect to the
-   * specified URI using the specified subprotocol. The client does not attempt
+   * specified URI using the specified subprotocol and draft. The client does not attempt
    * to connect automatically. You must call <var>connect</var> first to
    * initiate the socket connection.
    * 
    * @param serverUri
    * @param subprotocol
+   * @param draft
    */
   public WebSocketClient(URI serverUri, String subprotocol) {
     setURI(serverUri);
